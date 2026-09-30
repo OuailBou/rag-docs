@@ -1,0 +1,6 @@
+spec: data/spec3.json
+tokenizer: BAAI/bge-base-en-v1.5
+
+chunker:
+  max_tokens: 512
+  header: true

@@ -1,0 +1,18 @@
+# Project data
+out/
+data/spec3.json
+
+# Python
+__pycache__/
+.venv/
+.venv*
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+src/*.egg-info/
+src/stripe_rag.egg-info/
+
+# OS
+.DS_Store
+**/.DS_Store
+__MACOSX/
