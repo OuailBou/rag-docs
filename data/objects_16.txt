@@ -1,0 +1,18 @@
+# Corpus principal: 16 objetos. El experimento de escala usa data/objects_50.txt.
+# Lista completa de candidatos: uv run python -m rag.extract --list
+charge
+customer
+payment_intent
+payment_method
+refund
+invoice
+subscription
+product
+price
+dispute
+payout
+balance_transaction
+setup_intent
+checkout.session
+coupon
+payment_link
