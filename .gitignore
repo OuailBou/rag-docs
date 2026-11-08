@@ -1,0 +1,13 @@
+# Todo lo generado (se regenera con extract, chunk e index)
+out/
+
+# Python
+__pycache__/
+.venv*/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Sistema
+.DS_Store
+__MACOSX/

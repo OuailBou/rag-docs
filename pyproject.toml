@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stripe-rag"
+version = "0.1.0"
+description = "RAG sobre la documentación de la API de Stripe, con modelo local"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pandas>=2.2.0",
+  "pyarrow>=16.0.0",
+  "pyyaml>=6.0.1",
+  "transformers>=4.44.0",
+  "sentence-transformers>=3.0.0",
+  "faiss-cpu>=1.8.0",
+  "langchain-text-splitters>=0.3.0",
+  "ollama>=0.4.0",
+  "gradio>=5.0.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
