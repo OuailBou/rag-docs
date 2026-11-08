@@ -1,0 +1,36 @@
+# Configuración final del sistema (la que se ha medido).
+# Otra configuración: RAG_CONFIG=configs/ollama.yaml
+
+data:
+  spec: data/raw/spec3.json          # spec OpenAPI de Stripe (2026-09-30.endive)
+  objects: data/objects_16.txt       # objetos del corpus (escala: data/objects_50.txt)
+
+extract:
+  open_active_objects: false         # false: no copiar dentro de un objeto otros objetos de la lista
+
+chunker:
+  strategy: hierarchical             # hierarchical | fixed
+  max_tokens: 512                    # tamaño máximo de un fragmento (límite del modelo de embeddings)
+  overlap: 64                        # solape entre fragmentos (solo fixed)
+  header: true                       # cabecera con la ruta en cada fragmento
+  small_to_big: false                # buscar con un fragmento por campo y devolver su fragmento grande
+
+embedding:
+  model: BAAI/bge-small-en-v1.5      # también se usa su tokenizador para contar tokens
+  query_prefix: ""                   # texto que se antepone a cada pregunta
+
+retrieval:
+  method: semantic                   # semantic | lexical | hybrid
+  object_filter: true                # priorizar los objetos que nombra la pregunta
+  top_k: 5                           # fragmentos que recibe el modelo
+  rerank: false                      # reordenar con un cross-encoder
+  reranker_model: BAAI/bge-reranker-base
+
+llm:
+  backend: openai                    # openai (LM Studio u otro servidor compatible) | ollama
+  base_url: http://localhost:1234/v1 # solo openai
+  model: google/gemma-4-e4b          # alternativa ligera en LM Studio: qwen2.5-coder-7b-instruct
+  temperature: 0
+  seed: 0
+  num_ctx: 8192
+  timeout: 300                       # segundos

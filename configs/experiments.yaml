@@ -1,0 +1,117 @@
+# Variantes de los experimentos. Cada una cambia UNA cosa respecto a la que se compara.
+# "config" se mezcla con configs/default.yaml; los resultados quedan en out/experiments/<variante>/.
+# "methods": semantic | lexical | hybrid, con +objfilter (filtro por objeto) y +rerank.
+# Uso: uv run python scripts/experiment.py [variante ...]
+
+variants:
+  # --- Ronda 1 ---
+  E0_base:                     # como estaba: copia los objetos de la lista dentro de otros
+    config: {extract: {open_active_objects: true}}
+    methods: [semantic, lexical, hybrid]
+
+  E1_sin_copias:               # configuración final
+    config: {extract: {open_active_objects: false}}
+    methods: [semantic, lexical, hybrid, semantic+objfilter]
+
+  E2_troceado_fijo:            # troceado de referencia (LangChain)
+    config: {chunker: {strategy: fixed}}
+    methods: [semantic, semantic+objfilter]
+
+  E3_sin_cabecera:
+    config: {chunker: {header: false}}
+    methods: [semantic, semantic+objfilter]
+
+  E4_bge_base:                 # modelo de embeddings más grande
+    config: {embedding: {model: BAAI/bge-base-en-v1.5}}
+    methods: [semantic, semantic+objfilter, hybrid]
+
+  E5_bge_base_prefijo:
+    config:
+      embedding:
+        model: BAAI/bge-base-en-v1.5
+        query_prefix: "Represent this sentence for searching relevant passages: "
+    methods: [semantic, semantic+objfilter]
+
+  # --- Ronda 2 ---
+  E6_tokens_256:
+    config: {chunker: {max_tokens: 256}}
+    methods: [semantic, semantic+objfilter]
+
+  E7_rerank_minilm:
+    config: {retrieval: {reranker_model: cross-encoder/ms-marco-MiniLM-L-6-v2}}
+    methods: [semantic+rerank, semantic+objfilter+rerank]
+
+  E8_rerank_bge:
+    config: {retrieval: {reranker_model: BAAI/bge-reranker-base}}
+    methods: [semantic+rerank, semantic+objfilter+rerank]
+
+  # --- Escala: de 16 a 50 objetos, mismas preguntas ---
+  E9_escala_50:
+    config: {data: {objects: data/objects_50.txt}}
+    methods: [semantic, semantic+objfilter]
+
+  E10_fijo_escala_50:
+    config: {data: {objects: data/objects_50.txt}, chunker: {strategy: fixed}}
+    methods: [semantic, semantic+objfilter]
+
+  # --- Iteración 4: small-to-big (motivada por la taxonomía de errores) ---
+  E11_small_to_big:
+    config: {chunker: {small_to_big: true}}
+    methods: [semantic, semantic+objfilter]
+
+compare:
+  - [E1_sin_copias:semantic, E0_base:semantic]
+  - [E1_sin_copias:semantic, E1_sin_copias:hybrid]
+  - [E1_sin_copias:semantic, E2_troceado_fijo:semantic]
+  - [E1_sin_copias:semantic, E3_sin_cabecera:semantic]
+  - [E1_sin_copias:semantic+objfilter, E1_sin_copias:semantic]
+  - [E4_bge_base:semantic, E1_sin_copias:semantic]
+  - [E5_bge_base_prefijo:semantic, E4_bge_base:semantic]
+  - [E4_bge_base:semantic+objfilter, E1_sin_copias:semantic+objfilter]
+  - [E6_tokens_256:semantic, E1_sin_copias:semantic]
+  - [E7_rerank_minilm:semantic+rerank, E1_sin_copias:semantic]
+  - [E8_rerank_bge:semantic+rerank, E1_sin_copias:semantic]
+  - [E8_rerank_bge:semantic+objfilter+rerank, E1_sin_copias:semantic]
+  - [E8_rerank_bge:semantic+objfilter+rerank, E1_sin_copias:semantic+objfilter]
+  - [E9_escala_50:semantic+objfilter, E1_sin_copias:semantic+objfilter]
+  - [E9_escala_50:semantic, E1_sin_copias:semantic]
+  - [E9_escala_50:semantic, E10_fijo_escala_50:semantic]
+  - [E11_small_to_big:semantic+objfilter, E1_sin_copias:semantic+objfilter]
+  - [E11_small_to_big:semantic, E1_sin_copias:semantic]
+
+# Conjuntos que no se usaron para elegir la configuración. Uso: uv run python scripts/heldout.py
+# "final" es la ejecución que se desglosa por categoría.
+heldout:
+  control:
+    runs: [E0_base:semantic, E1_sin_copias:semantic, E1_sin_copias:semantic+objfilter,
+           E2_troceado_fijo:semantic, E3_sin_cabecera:semantic]
+    final: E1_sin_copias:semantic+objfilter
+    compare:
+      - [E1_sin_copias:semantic, E2_troceado_fijo:semantic]
+      - [E1_sin_copias:semantic, E3_sin_cabecera:semantic]
+      - [E1_sin_copias:semantic, E0_base:semantic]
+      - [E1_sin_copias:semantic+objfilter, E1_sin_copias:semantic]
+      - [E1_sin_copias:semantic+objfilter, E0_base:semantic]
+  test:
+    runs: [E0_base:semantic, E1_sin_copias:semantic, E1_sin_copias:semantic+objfilter,
+           E2_troceado_fijo:semantic, E3_sin_cabecera:semantic,
+           E9_escala_50:semantic, E9_escala_50:semantic+objfilter, E10_fijo_escala_50:semantic]
+    final: E1_sin_copias:semantic+objfilter
+    compare:
+      - [E1_sin_copias:semantic, E2_troceado_fijo:semantic]
+      - [E1_sin_copias:semantic, E3_sin_cabecera:semantic]
+      - [E1_sin_copias:semantic, E0_base:semantic]
+      - [E1_sin_copias:semantic+objfilter, E1_sin_copias:semantic]
+      - [E1_sin_copias:semantic+objfilter, E0_base:semantic]
+      - [E9_escala_50:semantic+objfilter, E1_sin_copias:semantic+objfilter]
+      - [E9_escala_50:semantic, E1_sin_copias:semantic]
+      - [E10_fijo_escala_50:semantic, E2_troceado_fijo:semantic]
+      - [E9_escala_50:semantic, E10_fijo_escala_50:semantic]
+  test2:
+    runs: [E1_sin_copias:semantic+objfilter, E2_troceado_fijo:semantic+objfilter,
+           E11_small_to_big:semantic+objfilter]
+    final: E1_sin_copias:semantic+objfilter
+    compare:
+      - [E11_small_to_big:semantic+objfilter, E1_sin_copias:semantic+objfilter]
+      - [E11_small_to_big:semantic+objfilter, E2_troceado_fijo:semantic+objfilter]
+      - [E1_sin_copias:semantic+objfilter, E2_troceado_fijo:semantic+objfilter]
